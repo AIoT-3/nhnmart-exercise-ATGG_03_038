@@ -52,6 +52,8 @@ public class ThreadPool {
         this.poolSize = 0;
         this.runnable = null;
         this.threadList = null;
+
+        createThread();
     }
 
     private void createThread(){
