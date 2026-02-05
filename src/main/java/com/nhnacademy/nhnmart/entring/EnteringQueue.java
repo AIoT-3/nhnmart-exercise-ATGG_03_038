@@ -1,15 +1,3 @@
-/*
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- * + Copyright 2024. NHN Academy Corp. All rights reserved.
- * + * While every precaution has been taken in the preparation of this resource,  assumes no
- * + responsibility for errors or omissions, or for damages resulting from the use of the information
- * + contained herein
- * + No part of this resource may be reproduced, stored in a retrieval system, or transmitted, in any
- * + form or by any means, electronic, mechanical, photocopying, recording, or otherwise, without the
- * + prior written permission.
- * +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- */
-
 package com.nhnacademy.nhnmart.entring;
 
 import com.nhnacademy.customer.domain.Customer;
@@ -26,40 +14,69 @@ import java.util.Queue;
 @Slf4j
 public class EnteringQueue {
 
-    //queue를 이용해서 mart 입장 대기열을 구현합니다.
-    private Queue<Customer> queue;
+    // queue를 이용해서 mart 입장 대기열을 구현합니다.
+    private final Queue<Customer> queue;
 
-    //기본 대기열 QueueSize = 100명
+    // 기본 대기열 QueueSize = 100명
     private static final int DEFAULT_CAPACITY = 100;
-    private int capacity;
-    public EnteringQueue(){
+    private final int capacity;
+
+    public EnteringQueue() {
         // TODO#3-1 기본 생성자 구현, capacity = DEFAULT_CAPACITY입니다.
+        this(DEFAULT_CAPACITY);
     }
 
     public EnteringQueue(int capacity) {
         // TODO#3-2 capacity <= 0이면 IllegalArgumentException이 발생합니다.
+        if (capacity <= 0) {
+            throw new IllegalArgumentException("Capacity must be greater than 0.");
+        }
 
         // TODO#3-3 capacity와 queue를 초기화합니다.
+        this.capacity = capacity;
+        this.queue = new LinkedList<>();
     }
 
-    public synchronized void addCustomer(Customer customer){
+    public synchronized void addCustomer(Customer customer) {
         /* TODO#3-4 대기열에 고객을 추가하는 메서드를 구현합니다.
            - queue.size() >= capacity이면 대기할 수 있도록 구현합니다.
         */
+        while (queue.size() >= capacity) {
+            try {
+                log.debug("Queue is full. Waiting to add customer...");
+                wait();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error("Thread interrupted while waiting to add customer", e);
+            }
+        }
 
         // TODO#3-5 queue에 고객을 추가하고 대기하고 있는 Thread를 깨웁니다.
+        queue.add(customer);
+        notifyAll();
     }
 
-    public synchronized Customer getCustomer(){
+    public synchronized Customer getCustomer() {
         // TODO#3-6 queue가 비어 있다면 대기합니다.
+        while (queue.isEmpty()) {
+            try {
+                log.debug("Queue is empty. Waiting for customers...");
+                wait();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error("Thread interrupted while waiting for customer", e);
+                return null;
+            }
+        }
 
         // TODO#3-7 queue에서 Customer를 반환합니다. 대기하고 있던 Thread를 깨웁니다.
-        return null;
+        Customer customer = queue.poll();
+        notifyAll();
+        return customer;
     }
 
     // TODO#3-8 queue size를 반환합니다.
-    public int getQueueSize(){
-        return 0;
+    public int getQueueSize() {
+        return queue.size();
     }
-
 }
