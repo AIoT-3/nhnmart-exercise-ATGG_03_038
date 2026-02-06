@@ -55,19 +55,43 @@ public class App
         */
 
         //TODO#10-1 checkout 대기열의 queueSize : 20으로 설정 합니다.
-        RequestChannel checkoutChannel = null;
+        RequestChannel checkoutChannel = new RequestChannel(20);
 
         //TODO#10-2 shoppingThreadPool, poolSize=10 생성후 실행 합니다.
-        Runnable customerRunnable = null;
-        ThreadPool shoppingThreadPool = null;
+        Runnable customerRunnable = new CustomerShoppingHandler(enteringQueue, productService, checkoutChannel);
+        ThreadPool shoppingThreadPool = new ThreadPool(10, customerRunnable);
+        shoppingThreadPool.start();
 
         //TODO#10-3 checkout을 하기위한 threadPool을 생성 합니다. poolSize =3 , 즉 동시에 3군대서 계산을 진행할 수 있습니다.
-        RequestHandler requestHandler = null;
-        ThreadPool checkOutThreadPool = null;
+        RequestHandler requestHandler = new RequestHandler(checkoutChannel);;
+        ThreadPool checkOutThreadPool = new ThreadPool(3, requestHandler);
+        checkOutThreadPool.start();;
 
         //TODO#10-4 60초 후 종료 됩니다.
         // enteringThread, shoppingThreadPool, checkOutThreadPool
+        try {
+            // 메인 스레드를 60초간 잠재워서 프로그램이 1분 동안 동작하게 함
+            Thread.sleep(60000);
+        } catch (InterruptedException e) {
+
+            Thread.currentThread().interrupt();
+        }
+
+
+
+        // enteringThread 종료 (인터럽트 발생시켜서 대기 상태 해제)
+        enteringThread.interrupt();
+        try {
+            enteringThread.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        // 쇼핑 스레드 풀 & 계산 스레드 풀 종료
+        shoppingThreadPool.stop();
+        checkOutThreadPool.stop();
 
         //TODO#10-5 application 실행 후 결과 확인하기
+        System.out.println("Main Application has finished successfully.");
     }
 }
