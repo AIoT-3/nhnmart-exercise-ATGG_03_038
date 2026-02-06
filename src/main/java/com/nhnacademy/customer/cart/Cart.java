@@ -32,10 +32,8 @@ public class Cart implements Serializable {
     public void tryAddItem(CartItem cartItem) throws ProductAlreadyExistsException {
         // TODO#2-2 장바구니에 아이템이 이미 존재한다면 ProductAlreadyExistsException 예외가 발생합니다.
         // 여기서 존재 여부는 productId를 기준으로 판단하는 것이 일반적입니다.
-        for (CartItem item : cartItems) {
-            if (item.getProductId() == cartItem.getProductId()) {
-                throw new ProductAlreadyExistsException(cartItem.getProductId());
-            }
+        if (cartItems.contains(cartItem)) {
+            throw new ProductAlreadyExistsException(cartItem.getProductId());
         }
 
         // TODO#2-3 cartItem에 아이템을 추가하는 코드를 작성하세요.
