@@ -80,13 +80,19 @@ public class Customer {
     // TODO#1-10 Customer 객체 비교를 위해 구현합니다. (비교 기준: id, name, money 일치)
     @Override
     public boolean equals(Object o) {
+        // 비교대상이 나 자신이면 무조건 true
         if (this == o) return true;
+        // 대상이 없거나 다른 클래스 종류라면 무조건 false
         if (o == null || getClass() != o.getClass()) return false;
+        // (형변환) Object o를 Custom 타임으로 변환
         Customer customer = (Customer) o;
+        // 데이터가 전부 같은지 확인
         return id == customer.id &&
                 money == customer.money &&
                 Objects.equals(name, customer.name);
     }
+    /* 왜 만드는가? -> equals를 구현하지 않으면 데이터가 전부 같은 custom 객체 2개가 만들어져도 다른 사람으로 인식 */
+
 
     // TODO#1-11 (id, name, money) 기준으로 hashCode()를 구현합니다.
     @Override
