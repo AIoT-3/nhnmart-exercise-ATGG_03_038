@@ -40,17 +40,28 @@ public class ProductServiceImpl implements ProductService {
 
     public ProductServiceImpl(ProductRepository productRepository, ProductParser productParser) {
         // TODO#6-5-1 productRepository 또는 productParser가 null이면 IllegalArgumentException이 발생합니다.
-
+        if (Objects.isNull(productRepository) || Objects.isNull(productParser)) {
+            throw new IllegalArgumentException("Repository and Parser cannot be null");
+        }
 
         // TODO#6-5-2 productRepository, productParser를 초기화합니다.
-
+        this.productRepository = productRepository;
+        this.productParser = productParser;
         // TODO#6-5-3 init() 메서드를 호출하여 초기화합니다.
-
+        init();
     }
 
     private void init(){
         // TODO#6-5-4 productParser.parse()를 호출하고 반환된 List<Product> products를 productRepository를 통해서 Memory 저장소에 저장합니다.
-
+        List<Product> products = productParser.parse();
+        for (Product product : products) {
+            // 초기 데이터 적재 시 이미 존재하는지 체크할 수도 있지만,
+            // 보통 초기화 단계에서는 신뢰할 수 있는 소스라고 가정하고 바로 저장하거나,
+            // 중복 시 덮어쓰거나 무시하는 정책을 따릅니다. 여기서는 단순 저장합니다.
+            if (!productRepository.existById(product.getId())) {
+                productRepository.save(product);
+            }
+        }
     }
 
     @Override
@@ -58,7 +69,8 @@ public class ProductServiceImpl implements ProductService {
         /* TODO#6-5-5 id에 해당되는 Product를 반환합니다.
             - Product가 존재하지 않는다면 ProductNotFoundException이 발생합니다.
         */
-        return null;
+        return productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
     }
 
     @Override
@@ -66,6 +78,10 @@ public class ProductServiceImpl implements ProductService {
         /* TODO#6-5-6 Product를 저장합니다.
            - Product ID에 해당되는 제품이 이미 존재한다면 ProductAlreadyExistsException이 발생합니다.
         */
+        if (productRepository.existById(product.getId())) {
+            throw new ProductAlreadyExistsException(product.getId());
+        }
+        productRepository.save(product);
 
     }
 
@@ -74,13 +90,17 @@ public class ProductServiceImpl implements ProductService {
         /* TODO#6-5-7 id에 해당되는 Product를 삭제합니다.
             - id에 해당되는 제품이 존재하지 않는다면 ProductNotFoundException이 발생합니다.
         */
+        if (!productRepository.existById(id)) {
+            throw new ProductNotFoundException(id);
+        }
+        productRepository.deleteById(id);
 
     }
 
     @Override
     public long getTotalCount() {
         // TODO#6-5-8 전체 Product의 수를 반환합니다.
-        return 0L;
+        return productRepository.count();
     }
 
     @Override
@@ -88,6 +108,10 @@ public class ProductServiceImpl implements ProductService {
         /* TODO#6-5-9 id에 해당되는 제품의 수량을 수정합니다.
             - id에 해당되는 제품이 존재하지 않는다면 ProductNotFoundException이 발생합니다.
         */
+        if (!productRepository.existById(id)) {
+            throw new ProductNotFoundException(id);
+        }
+        productRepository.updateQuantityById(id, quantity);
 
     }
 
@@ -99,6 +123,13 @@ public class ProductServiceImpl implements ProductService {
             - 조회 : getProduct(id)
             - 수량 변경 : updateQuantity(id, product.getQuantity()-quantity)
          */
+        Product product = getProduct(id); // 존재하지 않으면 여기서 ProductNotFoundException 발생
+
+        if (product.getQuantity() < quantity) {
+            throw new OutOfStockException(id);
+        }
+
+        updateQuantity(id, product.getQuantity() - quantity);
 
     }
 
@@ -110,7 +141,11 @@ public class ProductServiceImpl implements ProductService {
             - 조회 : getProduct(id)
             - 수량 변경 : updateQuantity(id, product.getQuantity()+quantity)
          */
-        return 0;
+        Product product = getProduct(id); // 존재하지 않으면 ProductNotFoundException
+        int newQuantity = product.getQuantity() + quantity;
+        updateQuantity(id, newQuantity);
+
+        return newQuantity;
     }
 
 }

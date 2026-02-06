@@ -20,7 +20,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class MemoryProductRepository implements ProductRepository {
+public class
+MemoryProductRepository implements ProductRepository {
     /*
         MemoryProductRepository를 구현합니다.
         - List, Map, Set 등 Memory 기반의 저장소를 사용하여 구현합니다.
@@ -30,45 +31,62 @@ public class MemoryProductRepository implements ProductRepository {
 
     private ConcurrentMap<Long, Product> productConcurrentMap;
 
+    public MemoryProductRepository() {
+        this.productConcurrentMap = new ConcurrentHashMap<>();
+    }
+
     @Override
     public void save(Product product) {
         // TODO#6-4-1 Product 저장
+        if (Objects.isNull(product)) {
+            throw new IllegalArgumentException("Product cannot be null");
+        }
+        productConcurrentMap.put(product.getId(), product);
 
     }
     @Override
     public Optional<Product> findById(long id) {
         // TODO#6-4-2 id에 해당되는 Product 조회
-        return null;
+        return Optional.ofNullable(productConcurrentMap.get(id));
     }
 
     @Override
     public void deleteById(long id) {
         // TODO#6-4-3 id에 해당하는 Product 삭제
+        productConcurrentMap.remove(id);
 
     }
 
     @Override
     public boolean existById(long id) {
         // TODO#6-4-4 id에 해당하는 Product 존재 여부를 체크해서 반환합니다.
-        return false;
+        return productConcurrentMap.containsKey(id);
     }
 
     @Override
     public long count() {
         // TODO#6-4-5 전체 Product 수 반환
-        return 0;
+        return productConcurrentMap.size();
     }
 
     @Override
     public int countQuantityById(long id) {
         // TODO#6-4-6 id에 해당되는 Product의 수량 반환(즉 재고 확인)
+        Product product = productConcurrentMap.get(id);
+        if (product != null) {
+            return product.getQuantity();
+        }
         return 0;
     }
 
     @Override
     public void updateQuantityById(long id, int quantity) {
         // TODO#6-4-7 id에 해당되는 Product의 수량 변경
-
+        Product product = productConcurrentMap.get(id);
+        if (product != null) {
+            // Product 클래스의 setQuantity 메서드 사용 (음수 체크는 Product 내부에서 수행됨)
+            product.setQuantity(quantity);
+        }
     }
 
 }
