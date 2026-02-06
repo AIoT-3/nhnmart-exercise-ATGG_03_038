@@ -22,22 +22,22 @@ import java.util.Objects;
 public class Product {
 
     // Product ID
-    private long id;
+    private final long id;
 
     // 품목
-    private String item;
+    private final String item;
 
     // 메이커
-    private String maker;
+    private final String maker;
 
     // 스펙
-    private String specification;
+    private final String specification;
 
     // 단위
-    private String unit;
+    private final String unit;
 
     // 가격
-    private int price;
+    private final int price;
 
     // 수량
     private int quantity;
