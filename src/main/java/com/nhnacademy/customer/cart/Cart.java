@@ -21,7 +21,7 @@ import java.util.List;
 
 public class Cart implements Serializable {
 
-    private List<CartItem> cartItems;
+    private final List<CartItem> cartItems;
 
     public Cart() {
         // TODO#2-1 장바구니 아이템을 담을 수 있는 cartItems를 초기화합니다.
