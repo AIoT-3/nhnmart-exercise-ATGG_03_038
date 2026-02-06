@@ -28,7 +28,7 @@ public interface ProductRepository {
     //product가 존재여부 체크
     boolean existById(long id);
 
-    //prdocut 전체 count;
+    //product 전체 count;
     long count();
 
     int countQuantityById(long id);

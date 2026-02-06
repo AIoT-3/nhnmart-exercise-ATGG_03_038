@@ -24,8 +24,13 @@ import java.util.List;
      - /src/main/resources/product_data.csv 파일을 파싱합니다.
 */
 public interface ProductParser extends Closeable {
+    // 파싱할 대상의 파일 이름 정의
     String PRODUCTS_DATA= "product_data.csv";
+
+    // 핵심기능: "파싱해서 상품 리스트를 내놔라 (추상클래스)
     List<Product> parse();
+
+    // 모든 구현체가 공통으로 쓸 "파일 불러오기" 로직을 여기에 미리 짜둔 것
     default InputStream getProductsStream(){
         return this.getClass()
                 .getClassLoader()
