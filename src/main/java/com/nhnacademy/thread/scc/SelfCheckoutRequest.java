@@ -32,12 +32,13 @@ public class SelfCheckoutRequest implements Executable {
 
     public SelfCheckoutRequest(Customer customer, Cart cart, ProductService productService) {
         // TODO#9-2-1 customer, cart, productService가 null이면 IllegalArgumentException 발생
-
-
+        if (Objects.isNull(customer) || Objects.isNull(cart) || Objects.isNull(productService)) {
+            throw new IllegalArgumentException("Arguments cannot be null");
+        }
         // TODO#9-2-2 customer, cart, productService 초기화
-        this.customer = null;
-        this.cart = null;
-        this.productService = null;
+        this.customer = customer;
+        this.cart = cart;
+        this.productService = productService;
     }
 
     @Override
@@ -48,21 +49,38 @@ public class SelfCheckoutRequest implements Executable {
            - customer.pay() 메서드를 이용해서 결제를 진행합니다.
            - 결제할 총 금액이 < customer.money 이면 모든 제품을 반납합니다. productService.returnProduct()를 이용해서 구현합니다.
         */
-
-
-
+        int totalAmount = getTotalAmountFromCart();
         try {
+            customer.pay(totalAmount);
+            log.info("Customer {} paid {} (Balance: {})", customer.getName(), totalAmount, customer.getMoney());
             // 1초 단위로 결제를 진행합니다.
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             // TODO#9-2-3 InterruptedException 발생 시 RuntimeException을 던집니다.
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        }
+        catch (InsufficientFundsException e) {
+            log.warn("Customer {} has insufficient funds (Required: {}, Has: {}). Returning items...",
+                    customer.getName(), totalAmount, customer.getMoney());
 
+            // 돈이 없으므로 장바구니에 있는 모든 물건을 마트에 반납 (재고 복구)
+            for (CartItem item : cart.getCartItems()) {
+                productService.returnProduct(item.getProductId(), item.getQuantity());
+            }
+            // 장바구니 비우기 (선택 사항)
+            cart.clear();
         }
     }
 
     public int getTotalAmountFromCart(){
         // TODO#9-2-4 결제 금액을 계산 후 반환합니다.
 
-        return 0;
+        int total = 0;
+        for (CartItem item : cart.getCartItems()) {
+            Product product = productService.getProduct(item.getProductId());
+            total += product.getPrice() * item.getQuantity();
+        }
+        return total;
     }
 }
